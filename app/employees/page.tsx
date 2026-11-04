@@ -339,7 +339,10 @@ export default function EmployeesPage() {
         </header>
 
         <div className="page-content employee-management-content">
-          <h1>จัดการพนักงานและสิทธิ์สวัสดิการ</h1>
+          <div className="employee-management-heading">
+            <h1>จัดการพนักงานและสิทธิ์สวัสดิการ</h1>
+            <Link href="/employees/requests" className="employee-track-requests-button">ติดตามคำขอเพิ่มบุคคล</Link>
+          </div>
           <section className="employee-management-panel" aria-label="รายการพนักงาน">
             <div className="employee-management-filters">
               <label className="employee-search-field">

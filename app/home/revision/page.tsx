@@ -237,25 +237,29 @@ export default function RevisionRequestsPage() {
               </div>
 
               <div className="requests-table-scroll">
-                <table className="requests-table rejected-table revision-table">
+                <table className="requests-table rejected-table revision-table request-identity-table revision-identity-table">
                   <thead>
                     <tr>
-                      <th scope="col">รหัส</th>
-                      <th scope="col">ชื่อ-นามสกุล</th>
-                      <th scope="col">แผนก</th>
+                      <th scope="col">รหัส / ชื่อ-นามสกุล</th>
+                      <th scope="col">ตำแหน่ง / แผนก</th>
                       <th scope="col">รายการ</th>
                       <th scope="col">ยอดเบิก</th>
                       <th scope="col">รายละเอียดที่ต้องแก้ไข</th>
                       <th scope="col">วันที่ส่งกลับ</th>
-                      <th scope="col"><span className="sr-only">เอกสาร</span></th>
+                      <th scope="col" aria-label="เอกสาร" />
                     </tr>
                   </thead>
                   <tbody>
                     {pageItems.map((request) => (
                       <tr key={request.requestId}>
-                        <td className="employee-id" title={request.requestId}>{request.employeeId}</td>
-                        <td className="employee-name">{request.name}</td>
-                        <td>{request.department}</td>
+                        <td className="request-employee-identity">
+                          <strong>{request.employeeId}</strong>
+                          <span>{request.name}</span>
+                        </td>
+                        <td className="request-role-department">
+                          <strong>{request.position}</strong>
+                          <span>{request.department}</span>
+                        </td>
                         <td>
                           <span className={`benefit-tag${request.itemType === "edit" ? " request-edit-tag" : ""}`}>
                             {request.itemType === "edit" ? "แก้ไขข้อมูล" : request.benefit}
@@ -273,7 +277,7 @@ export default function RevisionRequestsPage() {
                       </tr>
                     ))}
                     {pageItems.length === 0 ? (
-                      <tr><td className="empty-results" colSpan={8}>ไม่พบรายการที่ตรงกับการค้นหา</td></tr>
+                      <tr><td className="empty-results" colSpan={7}>ไม่พบรายการที่ตรงกับการค้นหา</td></tr>
                     ) : null}
                   </tbody>
                 </table>

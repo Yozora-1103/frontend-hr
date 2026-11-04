@@ -139,9 +139,14 @@ export default function BenefitsPage() {
         <div className="page-content benefits-content">
           <div className="benefits-heading">
             <h1>ตั้งค่าสวัสดิการ</h1>
-            <Link href="/benefits/add" className="button button-secondary benefits-add-button">
-              <PlusIcon /> เพิ่มสวัสดิการใหม่
-            </Link>
+            <div className="benefits-heading-actions">
+              <Link href="/benefits/requests" className="button button-secondary benefits-track-button">
+                ติดตามคำขอเพิ่มสวัสดิการ
+              </Link>
+              <Link href="/benefits/add" className="button button-secondary benefits-add-button">
+                <PlusIcon /> เพิ่มสวัสดิการใหม่
+              </Link>
+            </div>
           </div>
 
           <section className="benefits-tier-card" aria-label="เลือกกลุ่มพนักงาน">
