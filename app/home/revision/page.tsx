@@ -6,6 +6,7 @@ import { SummaryCards } from "../../SummaryCards";
 
 type RevisionRequest = {
   requestId: string;
+  itemType: "benefit" | "edit";
   employeeId: string;
   name: string;
   department: string;
@@ -33,11 +34,12 @@ const correctionNotes = [
   "เอกสารแนบอ่านข้อมูลไม่ชัดเจน",
 ];
 
-const revisionRequests: RevisionRequest[] = Array.from({ length: 123 }, (_, index) => {
+const revisionRequests: RevisionRequest[] = [...Array.from({ length: 123 }, (_, index) => {
   const employeeIndex = index % employees.length;
   const employee = employees[employeeIndex];
   return {
     requestId: `REQ-${String(6701 + index).padStart(4, "0")}`,
+    itemType: "benefit" as const,
     employeeId: employee.id,
     name: employee.name,
     department: employee.department,
@@ -47,7 +49,29 @@ const revisionRequests: RevisionRequest[] = Array.from({ length: 123 }, (_, inde
     correction: correctionNotes[index % correctionNotes.length],
     submittedAt: `${12 - Math.floor(index / 20)} ต.ค. 2569`,
   };
-});
+}), {
+  requestId: "REQ-EDIT-6701",
+  itemType: "edit",
+  employeeId: "0624",
+  name: "น.ส.สุภาวดี รุ่งเรือง",
+  department: "HR",
+  position: "HR Officer",
+  benefit: "แก้ไขข้อมูลส่วนบุคคล",
+  amount: 0,
+  correction: "กรุณาแนบเอกสารยืนยันข้อมูลที่แก้ไข",
+  submittedAt: "12 ต.ค. 2569",
+}, {
+  requestId: "REQ-EDIT-6702",
+  itemType: "edit",
+  employeeId: "0718",
+  name: "นายธีรภัทร พัฒนกิจ",
+  department: "IT",
+  position: "Developer",
+  benefit: "แก้ไขข้อมูลบัญชีธนาคาร",
+  amount: 0,
+  correction: "กรุณาแนบสำเนาหน้าสมุดบัญชี",
+  submittedAt: "11 ต.ค. 2569",
+}];
 
 const pageSize = 5;
 
@@ -74,6 +98,7 @@ export default function RevisionRequestsPage() {
   const [department, setDepartment] = useState("ทั้งหมด");
   const [position, setPosition] = useState("ทั้งหมด");
   const [benefit, setBenefit] = useState("ทั้งหมด");
+  const [itemType, setItemType] = useState("ทั้งหมด");
   const [page, setPage] = useState(1);
 
   const filteredRequests = useMemo(() => {
@@ -88,10 +113,11 @@ export default function RevisionRequestsPage() {
         matchesQuery &&
         (department === "ทั้งหมด" || request.department === department) &&
         (position === "ทั้งหมด" || request.position === position) &&
-        (benefit === "ทั้งหมด" || request.benefit === benefit)
+        (benefit === "ทั้งหมด" || (request.itemType === "benefit" && request.benefit === benefit)) &&
+        (itemType === "ทั้งหมด" || request.itemType === itemType)
       );
     });
-  }, [benefit, department, position, query]);
+  }, [benefit, department, itemType, position, query]);
 
   const pageCount = Math.max(1, Math.ceil(filteredRequests.length / pageSize));
   const currentPage = Math.min(page, pageCount);
@@ -106,6 +132,7 @@ export default function RevisionRequestsPage() {
     setDepartment("ทั้งหมด");
     setPosition("ทั้งหมด");
     setBenefit("ทั้งหมด");
+    setItemType("ทั้งหมด");
     setPage(1);
   }
 
@@ -160,7 +187,7 @@ export default function RevisionRequestsPage() {
                 <h2 id="revision-title">รายการรอแก้ไข</h2>
                 <span className="result-count">{filteredRequests.length} รายการ</span>
               </div>
-              <p>ติดตามคำขอที่รอพนักงานแก้ไขเอกสารหรือข้อมูลเพิ่มเติม</p>
+              <p>ติดตามคำขอสวัสดิการและคำขอแก้ไขข้อมูลที่รอการแก้ไข</p>
             </div>
 
             <div className="requests-panel">
@@ -192,6 +219,14 @@ export default function RevisionRequestsPage() {
                   </select>
                 </label>
                 <label className="filter-control">
+                  <span>รายการ:</span>
+                  <select value={itemType} onChange={(event) => { setItemType(event.target.value); setPage(1); }} aria-label="กรองตามรายการ">
+                    <option value="ทั้งหมด">ทั้งหมด</option>
+                    <option value="benefit">สวัสดิการ</option>
+                    <option value="edit">แก้ไขข้อมูล</option>
+                  </select>
+                </label>
+                <label className="filter-control">
                   <span>ประเภทสวัสดิการ:</span>
                   <select value={benefit} onChange={(event) => { setBenefit(event.target.value); setPage(1); }} aria-label="กรองตามประเภทสวัสดิการ">
                     <option>ทั้งหมด</option>
@@ -208,7 +243,7 @@ export default function RevisionRequestsPage() {
                       <th scope="col">รหัส</th>
                       <th scope="col">ชื่อ-นามสกุล</th>
                       <th scope="col">แผนก</th>
-                      <th scope="col">สวัสดิการ</th>
+                      <th scope="col">รายการ</th>
                       <th scope="col">ยอดเบิก</th>
                       <th scope="col">รายละเอียดที่ต้องแก้ไข</th>
                       <th scope="col">วันที่ส่งกลับ</th>
@@ -221,8 +256,13 @@ export default function RevisionRequestsPage() {
                         <td className="employee-id" title={request.requestId}>{request.employeeId}</td>
                         <td className="employee-name">{request.name}</td>
                         <td>{request.department}</td>
-                        <td><span className="benefit-tag">{request.benefit}</span></td>
-                        <td className="amount-cell">{formatCurrency(request.amount)} บ.</td>
+                        <td>
+                          <span className={`benefit-tag${request.itemType === "edit" ? " request-edit-tag" : ""}`}>
+                            {request.itemType === "edit" ? "แก้ไขข้อมูล" : request.benefit}
+                          </span>
+                          {request.itemType === "edit" ? <small className="request-item-detail">{request.benefit}</small> : null}
+                        </td>
+                        <td className="amount-cell">{request.itemType === "benefit" ? `${formatCurrency(request.amount)} บ.` : "—"}</td>
                         <td className="rejection-reason">{request.correction}</td>
                         <td className="submitted-date">{request.submittedAt}</td>
                         <td>

@@ -53,19 +53,23 @@ export default function ReportsPage() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [startDate, setStartDate] = useState("2026-01-01");
   const [endDate, setEndDate] = useState("2026-12-31");
+  const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("ทั้งหมด");
   const [benefit, setBenefit] = useState("ทั้งหมด");
   const [status, setStatus] = useState("ทั้งหมด");
   const [page, setPage] = useState(1);
 
   const benefitTypes = useMemo(() => [...new Set(requests.map((request) => request.benefit))], []);
+  const normalizedSearch = search.trim().toLocaleLowerCase();
   const filteredRequests = useMemo(() => requests.filter((request) =>
     request.date >= startDate &&
     request.date <= endDate &&
+    (!normalizedSearch || [request.requestNumber, request.documentNumber, request.id]
+      .some((value) => value.toLocaleLowerCase().includes(normalizedSearch))) &&
     (department === "ทั้งหมด" || request.department === department) &&
     (benefit === "ทั้งหมด" || request.benefit === benefit) &&
     (status === "ทั้งหมด" || request.status === status),
-  ), [benefit, department, endDate, startDate, status]);
+  ), [benefit, department, endDate, normalizedSearch, startDate, status]);
 
   const categoryStats = useMemo(() => {
     const counts = new Map<string, number>();
@@ -116,6 +120,16 @@ export default function ReportsPage() {
           <h1>รายงานและสถิติ</h1>
 
           <section className="reports-filters" aria-label="ตัวกรองรายงาน">
+            <label className="report-search-field">
+              <span>ค้นหาเลขที่คำขอ / เลขที่เอกสาร / รหัส:</span>
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => changeFilter(setSearch, event.target.value)}
+                placeholder="พิมพ์เลขที่คำขอ เลขที่เอกสาร หรือรหัส"
+                aria-label="ค้นหาจากเลขที่คำขอ เลขที่เอกสาร หรือรหัสพนักงาน"
+              />
+            </label>
             <label className="report-date-range">
               <span>ช่วงเวลา:</span>
               <div className="report-date-inputs">
@@ -174,7 +188,7 @@ export default function ReportsPage() {
                       <th scope="col">รหัส</th>
                       <th scope="col">ชื่อ-นามสกุล</th>
                       <th scope="col">แผนก</th>
-                      <th scope="col">สวัสดิการ</th>
+                      <th scope="col">รายการ</th>
                       <th scope="col">เลขที่คำขอ</th>
                       <th scope="col">เลขที่เอกสาร</th>
                       <th scope="col">วันที่</th>

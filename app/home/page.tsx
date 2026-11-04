@@ -6,6 +6,7 @@ import { SummaryCards } from "../SummaryCards";
 
 type Request = {
   id: string;
+  itemType: "benefit" | "edit";
   name: string;
   department: string;
   position: string;
@@ -19,11 +20,13 @@ type Request = {
 type RequestAction = "approve" | "reject" | "return";
 
 const initialRequests: Request[] = [
-  { id: "0124", name: "นายสมชาย ใจดี", department: "IT", position: "Developer", benefit: "ทันตกรรม", used: 7500, limit: 15000, amount: 900, submitted: "12 ต.ค. 2569" },
-  { id: "0352", name: "น.ส.สมหญิง รักดี", department: "Marketing", position: "Marketing Officer", benefit: "ค่ารักษาพยาบาล", used: 12000, limit: 30000, amount: 2000, submitted: "12 ต.ค. 2569" },
-  { id: "0411", name: "นายมานะ มุ่งมั่น", department: "Sales", position: "Sales Executive", benefit: "ฟิตเนสรายปี", used: 2000, limit: 10000, amount: 5000, submitted: "11 ต.ค. 2569" },
-  { id: "0278", name: "น.ส.ปวีณา ตั้งใจ", department: "HR", position: "HR Officer", benefit: "ตรวจสุขภาพประจำปี", used: 0, limit: 8000, amount: 3500, submitted: "11 ต.ค. 2569" },
-  { id: "0506", name: "นายธนกร ก้าวหน้า", department: "Finance", position: "Accountant", benefit: "ค่าอุปกรณ์ทำงาน", used: 2400, limit: 12000, amount: 1800, submitted: "10 ต.ค. 2569" },
+  { id: "0124", itemType: "benefit", name: "นายสมชาย ใจดี", department: "IT", position: "Developer", benefit: "ทันตกรรม", used: 7500, limit: 15000, amount: 900, submitted: "12 ต.ค. 2569" },
+  { id: "0352", itemType: "benefit", name: "น.ส.สมหญิง รักดี", department: "Marketing", position: "Marketing Officer", benefit: "ค่ารักษาพยาบาล", used: 12000, limit: 30000, amount: 2000, submitted: "12 ต.ค. 2569" },
+  { id: "0411", itemType: "benefit", name: "นายมานะ มุ่งมั่น", department: "Sales", position: "Sales Executive", benefit: "ฟิตเนสรายปี", used: 2000, limit: 10000, amount: 5000, submitted: "11 ต.ค. 2569" },
+  { id: "0278", itemType: "benefit", name: "น.ส.ปวีณา ตั้งใจ", department: "HR", position: "HR Officer", benefit: "ตรวจสุขภาพประจำปี", used: 0, limit: 8000, amount: 3500, submitted: "11 ต.ค. 2569" },
+  { id: "0506", itemType: "benefit", name: "นายธนกร ก้าวหน้า", department: "Finance", position: "Accountant", benefit: "ค่าอุปกรณ์ทำงาน", used: 2400, limit: 12000, amount: 1800, submitted: "10 ต.ค. 2569" },
+  { id: "0624", itemType: "edit", name: "น.ส.สุภาวดี รุ่งเรือง", department: "HR", position: "HR Officer", benefit: "แก้ไขข้อมูลส่วนบุคคล", used: 0, limit: 0, amount: 0, submitted: "12 ต.ค. 2569" },
+  { id: "0718", itemType: "edit", name: "นายธีรภัทร พัฒนกิจ", department: "IT", position: "Developer", benefit: "แก้ไขข้อมูลบัญชีธนาคาร", used: 0, limit: 0, amount: 0, submitted: "11 ต.ค. 2569" },
 ];
 
 function SearchIcon() {
@@ -49,6 +52,7 @@ export default function Home() {
   const [department, setDepartment] = useState("ทั้งหมด");
   const [position, setPosition] = useState("ทั้งหมด");
   const [benefit, setBenefit] = useState("ทั้งหมด");
+  const [itemType, setItemType] = useState("ทั้งหมด");
   const [pendingRequests, setPendingRequests] = useState(initialRequests);
   const [decision, setDecision] = useState<{ request: Request; action: RequestAction } | null>(null);
   const [reason, setReason] = useState("");
@@ -67,10 +71,11 @@ export default function Home() {
         matchesQuery &&
         (department === "ทั้งหมด" || request.department === department) &&
         (position === "ทั้งหมด" || request.position === position) &&
-        (benefit === "ทั้งหมด" || request.benefit === benefit)
+        (benefit === "ทั้งหมด" || (request.itemType === "benefit" && request.benefit === benefit)) &&
+        (itemType === "ทั้งหมด" || request.itemType === itemType)
       );
     });
-  }, [benefit, department, pendingRequests, position, query]);
+  }, [benefit, department, itemType, pendingRequests, position, query]);
 
   function openDecision(request: Request, action: RequestAction) {
     setDecision({ request, action });
@@ -150,11 +155,11 @@ export default function Home() {
                 <h2 id="approval-title">รายการรออนุมัติ</h2>
                 <span className="result-count">{filteredRequests.length} รายการ</span>
               </div>
-              <p>ตรวจสอบเอกสารและจัดการคำขอสวัสดิการของพนักงาน</p>
+              <p>ตรวจสอบเอกสารและจัดการคำขอสวัสดิการหรือคำขอแก้ไขข้อมูลของพนักงาน</p>
             </div>
 
             <div className="requests-panel">
-              <div className="request-filters rejected-filters">
+              <div className="request-filters rejected-filters home-request-filters">
                 <label className="request-search">
                   <span>ค้นหา</span>
                   <div className="filter-input search-input">
@@ -168,7 +173,7 @@ export default function Home() {
                   </div>
                 </label>
                 <label className="filter-control">
-                  <span>กรองตาม:</span>
+                  <span>แผนก:</span>
                   <select value={department} onChange={(event) => setDepartment(event.target.value)} aria-label="กรองตามแผนก">
                     <option>ทั้งหมด</option>
                     <option>IT</option>
@@ -188,10 +193,18 @@ export default function Home() {
                   </select>
                 </label>
                 <label className="filter-control">
+                  <span>รายการ:</span>
+                  <select value={itemType} onChange={(event) => setItemType(event.target.value)} aria-label="กรองตามรายการ">
+                    <option value="ทั้งหมด">ทั้งหมด</option>
+                    <option value="benefit">สวัสดิการ</option>
+                    <option value="edit">แก้ไขข้อมูล</option>
+                  </select>
+                </label>
+                <label className="filter-control">
                   <span>ประเภทสวัสดิการ:</span>
                   <select value={benefit} onChange={(event) => setBenefit(event.target.value)} aria-label="กรองตามประเภทสวัสดิการ">
                     <option>ทั้งหมด</option>
-                    {Array.from(new Set(initialRequests.map((request) => request.benefit))).map((name) => (
+                    {Array.from(new Set(initialRequests.filter((request) => request.itemType === "benefit").map((request) => request.benefit))).map((name) => (
                       <option key={name}>{name}</option>
                     ))}
                   </select>
@@ -199,7 +212,7 @@ export default function Home() {
                 <button
                   type="button"
                   className="reset-filters"
-                  onClick={() => { setQuery(""); setDepartment("ทั้งหมด"); setPosition("ทั้งหมด"); setBenefit("ทั้งหมด"); }}
+                  onClick={() => { setQuery(""); setDepartment("ทั้งหมด"); setPosition("ทั้งหมด"); setBenefit("ทั้งหมด"); setItemType("ทั้งหมด"); }}
                 >
                   ล้างตัวกรอง
                 </button>
@@ -212,7 +225,7 @@ export default function Home() {
                       <th scope="col">รหัส</th>
                       <th scope="col">ชื่อ-นามสกุล</th>
                       <th scope="col">แผนก</th>
-                      <th scope="col">สวัสดิการ</th>
+                      <th scope="col">รายการ</th>
                       <th scope="col">การใช้งานโควต้าปีนี้</th>
                       <th scope="col">ยอดเบิก</th>
                       <th scope="col">วันที่ยื่นคำขอ</th>
@@ -222,20 +235,29 @@ export default function Home() {
                   </thead>
                   <tbody>
                     {filteredRequests.map((request) => {
-                      const usagePercent = Math.min((request.used / request.limit) * 100, 100);
+                      const usagePercent = request.itemType === "benefit"
+                        ? Math.min((request.used / request.limit) * 100, 100)
+                        : 0;
                       return (
                         <tr key={request.id}>
                           <td className="employee-id">{request.id}</td>
                           <td className="employee-name">{request.name}</td>
                           <td>{request.department}</td>
-                          <td><span className="benefit-tag">{request.benefit}</span></td>
                           <td>
-                            <div className="quota-cell">
-                              <span>{formatCurrency(request.used)} / {formatCurrency(request.limit)}</span>
-                              <span className="quota-track"><span style={{ width: `${usagePercent}%` }} /></span>
-                            </div>
+                            <span className={`benefit-tag${request.itemType === "edit" ? " request-edit-tag" : ""}`}>
+                              {request.itemType === "edit" ? "แก้ไขข้อมูล" : request.benefit}
+                            </span>
+                            {request.itemType === "edit" ? <small className="request-item-detail">{request.benefit}</small> : null}
                           </td>
-                          <td className="amount-cell">{formatCurrency(request.amount)} บ.</td>
+                          <td>
+                            {request.itemType === "benefit" ? (
+                              <div className="quota-cell">
+                                <span>{formatCurrency(request.used)} / {formatCurrency(request.limit)}</span>
+                                <span className="quota-track"><span style={{ width: `${usagePercent}%` }} /></span>
+                              </div>
+                            ) : <span className="request-not-applicable">—</span>}
+                          </td>
+                              <td className="amount-cell">{request.itemType === "benefit" ? `${formatCurrency(request.amount)} บ.` : "—"}</td>
                           <td className="submitted-date">{request.submitted}</td>
                           <td>
                             <button type="button" className="document-button" aria-label={`ดูเอกสารคำขอของ ${request.name}`}>

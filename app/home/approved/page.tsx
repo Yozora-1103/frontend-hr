@@ -6,6 +6,7 @@ import { SummaryCards } from "../../SummaryCards";
 
 type ApprovedRequest = {
   requestId: string;
+  itemType: "benefit" | "edit";
   employeeId: string;
   name: string;
   department: string;
@@ -34,12 +35,13 @@ const quotas = [
   { used: 2400, limit: 12000, amount: 1800 },
 ];
 
-const approvedRequests: ApprovedRequest[] = Array.from({ length: 142 }, (_, index) => {
+const approvedRequests: ApprovedRequest[] = [...Array.from({ length: 142 }, (_, index) => {
   const employeeIndex = index % employees.length;
   const employee = employees[employeeIndex];
   const quota = quotas[employeeIndex];
   return {
     requestId: `REQ-${String(6801 + index).padStart(4, "0")}`,
+    itemType: "benefit" as const,
     employeeId: employee.id,
     name: employee.name,
     department: employee.department,
@@ -50,7 +52,31 @@ const approvedRequests: ApprovedRequest[] = Array.from({ length: 142 }, (_, inde
     amount: quota.amount + Math.floor(index / employees.length) * 100,
     approvedAt: `${12 - Math.floor(index / 20)} ต.ค. 2569`,
   };
-});
+}), {
+  requestId: "REQ-EDIT-6801",
+  itemType: "edit",
+  employeeId: "0624",
+  name: "น.ส.สุภาวดี รุ่งเรือง",
+  department: "HR",
+  position: "HR Officer",
+  benefit: "แก้ไขข้อมูลส่วนบุคคล",
+  used: 0,
+  limit: 0,
+  amount: 0,
+  approvedAt: "12 ต.ค. 2569",
+}, {
+  requestId: "REQ-EDIT-6802",
+  itemType: "edit",
+  employeeId: "0718",
+  name: "นายธีรภัทร พัฒนกิจ",
+  department: "IT",
+  position: "Developer",
+  benefit: "แก้ไขข้อมูลบัญชีธนาคาร",
+  used: 0,
+  limit: 0,
+  amount: 0,
+  approvedAt: "11 ต.ค. 2569",
+}];
 
 const pageSize = 5;
 
@@ -77,6 +103,7 @@ export default function ApprovedRequestsPage() {
   const [department, setDepartment] = useState("ทั้งหมด");
   const [position, setPosition] = useState("ทั้งหมด");
   const [benefit, setBenefit] = useState("ทั้งหมด");
+  const [itemType, setItemType] = useState("ทั้งหมด");
   const [page, setPage] = useState(1);
 
   const filteredRequests = useMemo(() => {
@@ -91,10 +118,11 @@ export default function ApprovedRequestsPage() {
         matchesQuery &&
         (department === "ทั้งหมด" || request.department === department) &&
         (position === "ทั้งหมด" || request.position === position) &&
-        (benefit === "ทั้งหมด" || request.benefit === benefit)
+        (benefit === "ทั้งหมด" || (request.itemType === "benefit" && request.benefit === benefit)) &&
+        (itemType === "ทั้งหมด" || request.itemType === itemType)
       );
     });
-  }, [benefit, department, position, query]);
+  }, [benefit, department, itemType, position, query]);
 
   const pageCount = Math.max(1, Math.ceil(filteredRequests.length / pageSize));
   const currentPage = Math.min(page, pageCount);
@@ -109,6 +137,7 @@ export default function ApprovedRequestsPage() {
     setDepartment("ทั้งหมด");
     setPosition("ทั้งหมด");
     setBenefit("ทั้งหมด");
+    setItemType("ทั้งหมด");
     setPage(1);
   }
 
@@ -163,7 +192,7 @@ export default function ApprovedRequestsPage() {
                 <h2 id="approved-title">รายการอนุมัติ</h2>
                 <span className="result-count">{filteredRequests.length} รายการ</span>
               </div>
-              <p>ตรวจสอบรายการคำขอสวัสดิการที่ได้รับอนุมัติในเดือนนี้</p>
+              <p>ตรวจสอบรายการคำขอสวัสดิการและการแก้ไขข้อมูลที่ได้รับอนุมัติในเดือนนี้</p>
             </div>
 
             <div className="requests-panel">
@@ -195,6 +224,14 @@ export default function ApprovedRequestsPage() {
                   </select>
                 </label>
                 <label className="filter-control">
+                  <span>รายการ:</span>
+                  <select value={itemType} onChange={(event) => { setItemType(event.target.value); setPage(1); }} aria-label="กรองตามรายการ">
+                    <option value="ทั้งหมด">ทั้งหมด</option>
+                    <option value="benefit">สวัสดิการ</option>
+                    <option value="edit">แก้ไขข้อมูล</option>
+                  </select>
+                </label>
+                <label className="filter-control">
                   <span>ประเภทสวัสดิการ:</span>
                   <select value={benefit} onChange={(event) => { setBenefit(event.target.value); setPage(1); }} aria-label="กรองตามประเภทสวัสดิการ">
                     <option>ทั้งหมด</option>
@@ -211,7 +248,7 @@ export default function ApprovedRequestsPage() {
                       <th scope="col">รหัส</th>
                       <th scope="col">ชื่อ-นามสกุล</th>
                       <th scope="col">แผนก</th>
-                      <th scope="col">สวัสดิการ</th>
+                      <th scope="col">รายการ</th>
                       <th scope="col">การใช้งานโควต้าปีนี้</th>
                       <th scope="col">ยอดเบิก</th>
                       <th scope="col">วันที่อนุมัติ</th>
@@ -220,20 +257,29 @@ export default function ApprovedRequestsPage() {
                   </thead>
                   <tbody>
                     {pageItems.map((request) => {
-                      const usagePercent = Math.min((request.used / request.limit) * 100, 100);
+                      const usagePercent = request.itemType === "benefit"
+                        ? Math.min((request.used / request.limit) * 100, 100)
+                        : 0;
                       return (
                         <tr key={request.requestId}>
                           <td className="employee-id" title={request.requestId}>{request.employeeId}</td>
                           <td className="employee-name">{request.name}</td>
                           <td>{request.department}</td>
-                          <td><span className="benefit-tag">{request.benefit}</span></td>
                           <td>
-                            <div className="quota-cell">
-                              <span>{formatCurrency(request.used)} / {formatCurrency(request.limit)}</span>
-                              <span className="quota-track"><span style={{ width: `${usagePercent}%` }} /></span>
-                            </div>
+                            <span className={`benefit-tag${request.itemType === "edit" ? " request-edit-tag" : ""}`}>
+                              {request.itemType === "edit" ? "แก้ไขข้อมูล" : request.benefit}
+                            </span>
+                            {request.itemType === "edit" ? <small className="request-item-detail">{request.benefit}</small> : null}
                           </td>
-                          <td className="amount-cell">{formatCurrency(request.amount)} บ.</td>
+                          <td>
+                            {request.itemType === "benefit" ? (
+                              <div className="quota-cell">
+                                <span>{formatCurrency(request.used)} / {formatCurrency(request.limit)}</span>
+                                <span className="quota-track"><span style={{ width: `${usagePercent}%` }} /></span>
+                              </div>
+                            ) : <span className="request-not-applicable">—</span>}
+                          </td>
+                          <td className="amount-cell">{request.itemType === "benefit" ? `${formatCurrency(request.amount)} บ.` : "—"}</td>
                           <td className="submitted-date">{request.approvedAt}</td>
                           <td>
                             <button type="button" className="document-button" aria-label={`ดูเอกสารคำขอ ${request.requestId}`}>
