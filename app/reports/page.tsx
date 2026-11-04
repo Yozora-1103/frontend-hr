@@ -5,6 +5,8 @@ import { Sidebar } from "../sidebar";
 
 type ReportRequest = {
   id: string;
+  requestNumber: string;
+  documentNumber: string;
   name: string;
   department: string;
   benefit: string;
@@ -14,18 +16,18 @@ type ReportRequest = {
 };
 
 const requests: ReportRequest[] = [
-  { id: "0124", name: "นายสมชาย ใจดี", department: "IT", benefit: "ทันตกรรม", amount: 900, date: "2026-01-12", status: "อนุมัติแล้ว" },
-  { id: "0352", name: "น.ส.สมหญิง รักดี", department: "Marketing", benefit: "ค่ารักษาพยาบาล", amount: 2000, date: "2026-02-18", status: "อนุมัติแล้ว" },
-  { id: "0411", name: "นายมานะ มุ่งมั่น", department: "Sales", benefit: "พัฒนาตัวเอง", amount: 5000, date: "2026-03-04", status: "อนุมัติแล้ว" },
-  { id: "0278", name: "น.ส.ปวีณา ตั้งใจ", department: "HR", benefit: "ตรวจสุขภาพประจำปี", amount: 3500, date: "2026-04-20", status: "อนุมัติแล้ว" },
-  { id: "0506", name: "นายธนกร ก้าวหน้า", department: "Finance", benefit: "ค่ารักษาพยาบาล", amount: 1800, date: "2026-05-09", status: "อนุมัติแล้ว" },
-  { id: "0310", name: "น.ส.กมลชนก สดใส", department: "IT", benefit: "ทันตกรรม", amount: 1200, date: "2026-06-11", status: "อนุมัติแล้ว" },
-  { id: "0442", name: "นายวรพล ตั้งตรง", department: "Sales", benefit: "ค่ารักษาพยาบาล", amount: 4200, date: "2026-07-15", status: "อนุมัติแล้ว" },
-  { id: "0189", name: "น.ส.ณัฐชา มีสุข", department: "Marketing", benefit: "พัฒนาตัวเอง", amount: 2800, date: "2026-08-03", status: "อนุมัติแล้ว" },
-  { id: "0395", name: "นายเกรียงไกร มั่นคง", department: "Finance", benefit: "ตรวจสุขภาพประจำปี", amount: 3000, date: "2026-09-10", status: "รอตรวจสอบ" },
-  { id: "0227", name: "น.ส.รัตนา แสงทอง", department: "HR", benefit: "ค่ารักษาพยาบาล", amount: 1500, date: "2026-10-12", status: "อนุมัติแล้ว" },
-  { id: "0521", name: "นายชาญชัย พูนผล", department: "IT", benefit: "ทันตกรรม", amount: 700, date: "2026-11-02", status: "ปฏิเสธแล้ว" },
-  { id: "0463", name: "น.ส.ปาริชาติ ใจเย็น", department: "Sales", benefit: "พัฒนาตัวเอง", amount: 2500, date: "2026-12-01", status: "อนุมัติแล้ว" },
+  { id: "0124", requestNumber: "REQ-2026-00124", documentNumber: "DOC-2026-00124", name: "นายสมชาย ใจดี", department: "IT", benefit: "ทันตกรรม", amount: 900, date: "2026-01-12", status: "อนุมัติแล้ว" },
+  { id: "0352", requestNumber: "REQ-2026-00068", documentNumber: "DOC-2026-00068", name: "น.ส.สมหญิง รักดี", department: "Marketing", benefit: "ค่ารักษาพยาบาล", amount: 2000, date: "2026-02-18", status: "อนุมัติแล้ว" },
+  { id: "0411", requestNumber: "REQ-2026-00119", documentNumber: "DOC-2026-00119", name: "นายมานะ มุ่งมั่น", department: "Sales", benefit: "พัฒนาตัวเอง", amount: 5000, date: "2026-03-04", status: "อนุมัติแล้ว" },
+  { id: "0278", requestNumber: "REQ-2026-00071", documentNumber: "DOC-2026-00071", name: "น.ส.ปวีณา ตั้งใจ", department: "HR", benefit: "ตรวจสุขภาพประจำปี", amount: 3500, date: "2026-04-20", status: "อนุมัติแล้ว" },
+  { id: "0506", requestNumber: "REQ-2026-00082", documentNumber: "DOC-2026-00082", name: "นายธนกร ก้าวหน้า", department: "Finance", benefit: "ค่ารักษาพยาบาล", amount: 1800, date: "2026-05-09", status: "อนุมัติแล้ว" },
+  { id: "0310", requestNumber: "REQ-2026-00093", documentNumber: "DOC-2026-00093", name: "น.ส.กมลชนก สดใส", department: "IT", benefit: "ทันตกรรม", amount: 1200, date: "2026-06-11", status: "อนุมัติแล้ว" },
+  { id: "0442", requestNumber: "REQ-2026-00102", documentNumber: "DOC-2026-00102", name: "นายวรพล ตั้งตรง", department: "Sales", benefit: "ค่ารักษาพยาบาล", amount: 4200, date: "2026-07-15", status: "อนุมัติแล้ว" },
+  { id: "0189", requestNumber: "REQ-2026-00108", documentNumber: "DOC-2026-00108", name: "น.ส.ณัฐชา มีสุข", department: "Marketing", benefit: "พัฒนาตัวเอง", amount: 2800, date: "2026-08-03", status: "อนุมัติแล้ว" },
+  { id: "0395", requestNumber: "REQ-2026-00113", documentNumber: "DOC-2026-00113", name: "นายเกรียงไกร มั่นคง", department: "Finance", benefit: "ตรวจสุขภาพประจำปี", amount: 3000, date: "2026-09-10", status: "รอตรวจสอบ" },
+  { id: "0227", requestNumber: "REQ-2026-00117", documentNumber: "DOC-2026-00117", name: "น.ส.รัตนา แสงทอง", department: "HR", benefit: "ค่ารักษาพยาบาล", amount: 1500, date: "2026-10-12", status: "อนุมัติแล้ว" },
+  { id: "0521", requestNumber: "REQ-2026-00121", documentNumber: "DOC-2026-00121", name: "นายชาญชัย พูนผล", department: "IT", benefit: "ทันตกรรม", amount: 700, date: "2026-11-02", status: "ปฏิเสธแล้ว" },
+  { id: "0463", requestNumber: "REQ-2026-00128", documentNumber: "DOC-2026-00128", name: "น.ส.ปาริชาติ ใจเย็น", department: "Sales", benefit: "พัฒนาตัวเอง", amount: 2500, date: "2026-12-01", status: "อนุมัติแล้ว" },
 ];
 
 const departments = ["IT", "Marketing", "Sales", "HR", "Finance"];
@@ -38,6 +40,12 @@ function SearchIcon() {
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("th-TH").format(value);
+}
+
+function formatDate(value: string) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Intl.DateTimeFormat("th-TH", { dateStyle: "medium", timeZone: "UTC" })
+    .format(new Date(Date.UTC(year, month - 1, day)));
 }
 
 export default function ReportsPage() {
@@ -167,21 +175,27 @@ export default function ReportsPage() {
                       <th scope="col">ชื่อ-นามสกุล</th>
                       <th scope="col">แผนก</th>
                       <th scope="col">สวัสดิการ</th>
+                      <th scope="col">เลขที่คำขอ</th>
+                      <th scope="col">เลขที่เอกสาร</th>
+                      <th scope="col">วันที่</th>
                       <th scope="col">ยอดเบิก</th>
                     </tr>
                   </thead>
                   <tbody>
                     {pageRequests.map((request) => (
                       <tr key={request.id}>
-                        <td>{request.id}</td>
-                        <td className="report-employee-name">{request.name}</td>
-                        <td>{request.department}</td>
-                        <td>{request.benefit}</td>
-                        <td className="report-amount">{formatCurrency(request.amount)} บ.</td>
+                        <td data-label="รหัส">{request.id}</td>
+                        <td data-label="ชื่อ-นามสกุล" className="report-employee-name">{request.name}</td>
+                        <td data-label="แผนก">{request.department}</td>
+                        <td data-label="สวัสดิการ">{request.benefit}</td>
+                        <td data-label="เลขที่คำขอ">{request.requestNumber}</td>
+                        <td data-label="เลขที่เอกสาร">{request.documentNumber}</td>
+                        <td data-label="วันที่"><time dateTime={request.date}>{formatDate(request.date)}</time></td>
+                        <td data-label="ยอดเบิก" className="report-amount">{formatCurrency(request.amount)} บ.</td>
                       </tr>
                     ))}
                     {!pageRequests.length ? (
-                      <tr><td className="report-empty" colSpan={5}>ไม่มีรายการตามตัวกรองที่เลือก</td></tr>
+                      <tr><td className="report-empty" colSpan={8}>ไม่มีรายการตามตัวกรองที่เลือก</td></tr>
                     ) : null}
                   </tbody>
                 </table>

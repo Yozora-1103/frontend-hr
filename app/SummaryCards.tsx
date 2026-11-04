@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 const summary = [
-  { id: "home", label: "คำขอรอตรวจเช็ก", value: "5", unit: "รายการ", icon: "clock", tone: "", href: "/home" },
+  { id: "home", label: "คำขอรอตรวจ", value: "5", unit: "รายการ", icon: "clock", tone: "", href: "/home" },
   { id: "rejected", label: "ปฏิเสธแล้ว", value: "20", unit: "รายการ", icon: "reject", tone: "", href: "/home/rejected" },
   { id: "approved", label: "อนุมัติแล้วเดือนนี้", value: "142", unit: "รายการ", icon: "check", tone: "", href: "/home/approved" },
   { id: "revision", label: "รอแก้ไข", value: "123", unit: "รายการ", icon: "edit", tone: "", href: "/home/revision" },
