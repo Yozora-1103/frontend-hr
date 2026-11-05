@@ -2663,53 +2663,6 @@ button {
   background: #fef2f2;
 }
 
-.employee-edit-form {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 13px;
-}
-
-.employee-edit-form label {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: 7px;
-  color: #334155;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.employee-edit-form input,
-.employee-edit-form select {
-  width: 100%;
-  min-width: 0;
-  height: 42px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background: white;
-  padding: 0 11px;
-  color: #1e293b;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 400;
-}
-
-.employee-edit-form input:focus,
-.employee-edit-form select:focus {
-  border-color: var(--primary-500);
-  outline: 3px solid rgb(59 130 246 / 15%);
-}
-
-.employee-edit-form label:first-child,
-.employee-edit-form label:nth-child(2),
-.employee-edit-form .decision-actions {
-  grid-column: 1 / -1;
-}
-
-.employee-edit-form .decision-actions {
-  margin-top: 6px;
-}
-
 .employee-history-empty {
   margin: 0;
   border: 1px solid var(--border);
@@ -3613,15 +3566,6 @@ button {
     width: 30%;
   }
 
-  .employee-edit-form {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .employee-edit-form label:first-child,
-  .employee-edit-form label:nth-child(2),
-  .employee-edit-form .decision-actions {
-    grid-column: auto;
-  }
 }
 
 .employee-history-content {
@@ -4239,6 +4183,20 @@ button {
   grid-template-columns: minmax(0, 1.45fr) minmax(270px, 0.8fr);
   gap: 28px;
   padding: 24px;
+}
+
+.employee-edit-profile-grid {
+  grid-template-columns: minmax(0, 1.15fr) minmax(270px, 0.85fr);
+}
+
+.employee-edit-contact {
+  gap: 15px;
+}
+
+.employee-edit-save-error {
+  margin: 0 24px 16px;
+  color: #b91c1c;
+  font-size: 13px;
 }
 
 .employee-profile-identity h3,

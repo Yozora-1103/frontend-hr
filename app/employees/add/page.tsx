@@ -85,6 +85,7 @@ export default function AddEmployeePage() {
       tier: "พนักงาน",
       used: 0,
       limit: 15000,
+      profile: Object.fromEntries(Object.entries(form).map(([key, value]) => [key, String(value)])),
     };
 
     sessionStorage.setItem("employee-next-id", String(nextId + 1));
