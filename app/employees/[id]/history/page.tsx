@@ -19,6 +19,8 @@ type HistoryEntry = {
   id: string;
   changedAt: string;
   summary: string;
+  actor?: string;
+  changes?: { field: string; before: string; after: string }[];
 };
 
 type BenefitRecord = {
@@ -45,6 +47,60 @@ const sampleRecords: Record<string, BenefitRecord[]> = {
   ],
 };
 
+const sampleAuditRecords: Record<string, HistoryEntry[]> = {
+  "0124": [
+    {
+      id: "0124-audit-1",
+      changedAt: "2026-10-10T10:15:00",
+      summary: "แก้ไขอีเมล",
+      actor: "ผู้ดูแลระบบ",
+      changes: [{ field: "อีเมล", before: "employee0124@oldcompany.co.th", after: "employee0124@company.co.th" }],
+    },
+    {
+      id: "0124-audit-2",
+      changedAt: "2026-09-18T14:30:00",
+      summary: "แก้ไขตำแหน่ง, กลุ่มสิทธิ์",
+      actor: "ผู้ดูแลระบบ",
+      changes: [
+        { field: "ตำแหน่ง", before: "Junior Developer", after: "Developer" },
+        { field: "กลุ่มสิทธิ์", before: "พนักงาน", after: "Admin" },
+      ],
+    },
+  ],
+  "0352": [
+    {
+      id: "0352-audit-1",
+      changedAt: "2026-10-09T09:20:00",
+      summary: "แก้ไขแผนก",
+      actor: "ผู้ดูแลระบบ",
+      changes: [{ field: "แผนก", before: "Sales", after: "Marketing" }],
+    },
+    {
+      id: "0352-audit-2",
+      changedAt: "2026-09-15T16:45:00",
+      summary: "แก้ไขตำแหน่ง",
+      actor: "ผู้ดูแลระบบ",
+      changes: [{ field: "ตำแหน่ง", before: "Marketing Officer", after: "ผู้จัดการ" }],
+    },
+  ],
+  "0411": [
+    {
+      id: "0411-audit-1",
+      changedAt: "2026-10-08T11:00:00",
+      summary: "แก้ไขอีเมล",
+      actor: "ผู้ดูแลระบบ",
+      changes: [{ field: "อีเมล", before: "employee0411@oldcompany.co.th", after: "employee0411@company.co.th" }],
+    },
+    {
+      id: "0411-audit-2",
+      changedAt: "2026-09-12T13:10:00",
+      summary: "แก้ไขกลุ่มสิทธิ์",
+      actor: "ผู้ดูแลระบบ",
+      changes: [{ field: "กลุ่มสิทธิ์", before: "ผู้จัดการ", after: "พนักงาน" }],
+    },
+  ],
+};
+
 function isEmployee(value: unknown): value is Employee {
   return (
     typeof value === "object" &&
@@ -66,7 +122,18 @@ function isHistoryEntry(value: unknown): value is HistoryEntry {
     value !== null &&
     "id" in value && typeof value.id === "string" &&
     "changedAt" in value && typeof value.changedAt === "string" &&
-    "summary" in value && typeof value.summary === "string"
+    "summary" in value && typeof value.summary === "string" &&
+    (!("actor" in value) || typeof value.actor === "string") &&
+    (!("changes" in value) || (
+      Array.isArray(value.changes) &&
+      value.changes.every((change) =>
+        typeof change === "object" &&
+        change !== null &&
+        "field" in change && typeof change.field === "string" &&
+        "before" in change && typeof change.before === "string" &&
+        "after" in change && typeof change.after === "string"
+      )
+    ))
   );
 }
 
@@ -103,6 +170,8 @@ export default function EmployeeHistoryPage() {
   const [benefitFilter, setBenefitFilter] = useState("ทั้งหมด");
   const [startDateTime, setStartDateTime] = useState("");
   const [endDateTime, setEndDateTime] = useState("");
+  const [auditStartDateTime, setAuditStartDateTime] = useState("");
+  const [auditEndDateTime, setAuditEndDateTime] = useState("");
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
@@ -132,7 +201,7 @@ export default function EmployeeHistoryPage() {
           setLoadError("ข้อมูลประวัติพนักงานไม่ถูกต้อง");
           return;
         }
-        setAuditHistory(parsedHistory);
+        setAuditHistory(parsedHistory.length ? parsedHistory : sampleAuditRecords[routeEmployeeId] ?? []);
         setExpenseHistory(sampleRecords[routeEmployeeId] ?? (currentEmployee.used > 0 ? [{
           id: `${routeEmployeeId}-sample`,
           requestNumber: `REQ-2026-${routeEmployeeId}`,
@@ -162,6 +231,13 @@ export default function EmployeeHistoryPage() {
       (!endDateTime || new Date(entry.date).getTime() <= new Date(endDateTime).getTime() + 59_999),
     ),
     [benefitFilter, endDateTime, expenseHistory, startDateTime],
+  );
+  const filteredAuditHistory = useMemo(
+    () => auditHistory.filter((entry) =>
+      (!auditStartDateTime || new Date(entry.changedAt).getTime() >= new Date(auditStartDateTime).getTime()) &&
+      (!auditEndDateTime || new Date(entry.changedAt).getTime() <= new Date(auditEndDateTime).getTime() + 59_999),
+    ),
+    [auditEndDateTime, auditHistory, auditStartDateTime],
   );
   const monthlyTotal = employee?.used ?? 0;
 
@@ -253,7 +329,7 @@ export default function EmployeeHistoryPage() {
                     aria-selected={activeTab === "audit"}
                     className={activeTab === "audit" ? "active" : ""}
                     onClick={() => setActiveTab("audit")}
-                  >ประวัติการแก้ไขสิทธิ์ (Audit Log)</button>
+                  >ประวัติการแก้ไขข้อมูล</button>
                 </div>
 
                 {activeTab === "expenses" ? (
@@ -304,25 +380,54 @@ export default function EmployeeHistoryPage() {
                   </>
                 ) : (
                   <>
-                    <div className="employee-history-controls"><span>{auditHistory.length} รายการ</span></div>
+                    <div className="employee-history-controls">
+                      <div className="employee-history-date-filter">
+                        <label>
+                          <span>วันที่/เวลาตั้งแต่:</span>
+                          <input type="datetime-local" value={auditStartDateTime} max={auditEndDateTime || undefined} onChange={(event) => setAuditStartDateTime(event.target.value)} aria-label="วันที่และเวลาเริ่มต้นของประวัติการแก้ไข" />
+                        </label>
+                        <label>
+                          <span>ถึง:</span>
+                          <input type="datetime-local" value={auditEndDateTime} min={auditStartDateTime || undefined} onChange={(event) => setAuditEndDateTime(event.target.value)} aria-label="วันที่และเวลาสิ้นสุดของประวัติการแก้ไข" />
+                        </label>
+                        {(auditStartDateTime || auditEndDateTime) ? (
+                          <button type="button" className="employee-history-clear-date" onClick={() => { setAuditStartDateTime(""); setAuditEndDateTime(""); }}>ล้างวันที่</button>
+                        ) : null}
+                      </div>
+                      <span className="employee-history-result-count">{filteredAuditHistory.length} รายการ</span>
+                    </div>
                     <div className="employee-history-table-wrap">
-                      <table className="employee-history-table">
+                      <table className="employee-history-table employee-history-audit-table">
                         <thead>
                           <tr><th scope="col">วันที่-เวลา</th><th scope="col">รายการกิจกรรม</th><th scope="col">ผู้ดำเนินการ</th></tr>
                         </thead>
                         <tbody>
-                          {auditHistory.map((entry) => (
+                          {filteredAuditHistory.map((entry) => (
                             <tr key={entry.id}>
                               <td><span>วันที่-เวลา</span><time dateTime={entry.changedAt}>{formatDateTime(entry.changedAt)}</time></td>
-                              <td><span>รายการกิจกรรม</span><strong>{entry.summary}</strong></td>
-                              <td><span>ผู้ดำเนินการ</span><strong>ผู้ดูแลระบบ</strong></td>
+                              <td>
+                                <span>รายการกิจกรรม</span>
+                                <div className="employee-history-change-details">
+                                  <strong>{entry.summary}</strong>
+                                  {entry.changes?.length ? (
+                                    <ul>
+                                      {entry.changes.map((change) => (
+                                        <li key={change.field}>
+                                          <span>{change.field}:</span> {change.before || "—"} <span aria-hidden="true">→</span> {change.after || "—"}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  ) : null}
+                                </div>
+                              </td>
+                              <td><span>ผู้ดำเนินการ</span><strong>{entry.actor || "ผู้ดูแลระบบ"}</strong></td>
                             </tr>
                           ))}
-                          {!auditHistory.length ? <tr><td className="employee-history-no-records" colSpan={3}>ยังไม่มีประวัติการแก้ไขสิทธิ์</td></tr> : null}
+                          {!filteredAuditHistory.length ? <tr><td className="employee-history-no-records" colSpan={3}>{auditHistory.length ? "ไม่พบประวัติในช่วงวันที่ที่เลือก" : "ยังไม่มีประวัติการแก้ไขข้อมูล"}</td></tr> : null}
                         </tbody>
                       </table>
                     </div>
-                    <p className="employee-history-count">แสดงผล {auditHistory.length ? `1-${auditHistory.length} จาก ` : ""}{auditHistory.length} รายการ</p>
+                    <p className="employee-history-count">แสดงผล {filteredAuditHistory.length ? `1-${filteredAuditHistory.length} จาก ` : ""}{filteredAuditHistory.length} รายการ</p>
                   </>
                 )}
               </section>
