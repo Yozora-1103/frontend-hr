@@ -14,14 +14,7 @@ type Employee = {
   tier: "Admin" | "ผู้จัดการ" | "พนักงาน";
   used: number;
   limit: number;
-};
-
-type EmployeeHistoryEntry = {
-  id: string;
-  changedAt: string;
-  summary: string;
-  actor?: string;
-  changes?: { field: string; before: string; after: string }[];
+  profile?: Record<string, string>;
 };
 
 const departments = ["IT", "Marketing", "Sales", "HR", "Finance"];
@@ -90,27 +83,11 @@ function isEmployee(value: unknown): value is Employee {
     "used" in value &&
     typeof value.used === "number" &&
     "limit" in value &&
-    typeof value.limit === "number"
-  );
-}
-
-function isHistoryEntry(value: unknown): value is EmployeeHistoryEntry {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "id" in value && typeof value.id === "string" &&
-    "changedAt" in value && typeof value.changedAt === "string" &&
-    "summary" in value && typeof value.summary === "string" &&
-    (!("actor" in value) || typeof value.actor === "string") &&
-    (!("changes" in value) || (
-      Array.isArray(value.changes) &&
-      value.changes.every((change) =>
-        typeof change === "object" &&
-        change !== null &&
-        "field" in change && typeof change.field === "string" &&
-        "before" in change && typeof change.before === "string" &&
-        "after" in change && typeof change.after === "string"
-      )
+    typeof value.limit === "number" &&
+    (!("profile" in value) || (
+      typeof value.profile === "object" &&
+      value.profile !== null &&
+      Object.values(value.profile).every((field) => typeof field === "string")
     ))
   );
 }
@@ -135,8 +112,23 @@ export default function EmployeesPage() {
   const [page, setPage] = useState(1);
   const [notice, setNotice] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null);
-  const [editTarget, setEditTarget] = useState<Employee | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", email: "", department: "", position: "", tier: "พนักงาน" as Employee["tier"] });
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      try {
+        const savedNotice = sessionStorage.getItem("employee-notice");
+        if (savedNotice) {
+          sessionStorage.removeItem("employee-notice");
+          setNotice(savedNotice);
+        }
+      } catch {
+        setNotice("ไม่สามารถโหลดข้อความแจ้งเตือนล่าสุดได้");
+      }
+
+    }, 0);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -249,74 +241,12 @@ export default function EmployeesPage() {
   }
 
   function openEdit(employee: Employee) {
-    setEditTarget(employee);
-    setEditForm({
-      name: employee.name,
-      email: employee.email,
-      department: employee.department,
-      position: employee.position,
-      tier: employee.tier,
-    });
-  }
-
-  function saveEdit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!editTarget) return;
-
-    const fieldChanges = [
-      { field: "ชื่อ-นามสกุล", before: editTarget.name, after: editForm.name.trim() },
-      { field: "อีเมล", before: editTarget.email, after: editForm.email.trim() },
-      { field: "แผนก", before: editTarget.department, after: editForm.department },
-      { field: "ตำแหน่ง", before: editTarget.position, after: editForm.position },
-      { field: "กลุ่มสิทธิ์", before: editTarget.tier, after: editForm.tier },
-    ].filter((change) => change.before !== change.after);
-    const changes = fieldChanges.map((change) => change.field);
-
-    if (changes.length === 0) {
-      setEditTarget(null);
-      return;
-    }
-
-    const updatedEmployee: Employee = {
-      ...editTarget,
-      name: editForm.name.trim(),
-      email: editForm.email.trim(),
-      department: editForm.department,
-      position: editForm.position,
-      tier: editForm.tier,
-    };
-    const historyEntry: EmployeeHistoryEntry = {
-      id: `${Date.now()}`,
-      changedAt: new Date().toISOString(),
-      summary: `แก้ไข${changes.join(", ")}`,
-      actor: "ผู้ดูแลระบบ",
-      changes: fieldChanges,
-    };
-    setEmployees((current) => current.map((employee) => employee.id === updatedEmployee.id ? updatedEmployee : employee));
-
     try {
-      const savedOverrides = sessionStorage.getItem("employee-overrides");
-      const parsedOverrides: unknown = savedOverrides ? JSON.parse(savedOverrides) : {};
-      if (!isEmployeeOverrides(parsedOverrides)) {
-        throw new Error("ข้อมูลประวัติพนักงานไม่ถูกต้อง");
-      }
-      sessionStorage.setItem(
-        "employee-overrides",
-        JSON.stringify({ ...parsedOverrides, [updatedEmployee.id]: updatedEmployee }),
-      );
-
-      const historyKey = `employee-history-${updatedEmployee.id}`;
-      const savedHistory = sessionStorage.getItem(historyKey);
-      const parsedHistory: unknown = savedHistory ? JSON.parse(savedHistory) : [];
-      if (!Array.isArray(parsedHistory) || !parsedHistory.every(isHistoryEntry)) {
-        throw new Error("ข้อมูลประวัติการแก้ไขไม่ถูกต้อง");
-      }
-      sessionStorage.setItem(historyKey, JSON.stringify([historyEntry, ...parsedHistory]));
-      setNotice(`แก้ไขข้อมูลพนักงาน ${updatedEmployee.name} เรียบร้อยแล้ว`);
+      sessionStorage.setItem("viewing-employee", JSON.stringify(employee));
+      router.push(`/employees/${encodeURIComponent(employee.id)}/edit`);
     } catch {
-      setNotice(`แก้ไขข้อมูลพนักงาน ${updatedEmployee.name} แล้ว แต่ไม่สามารถบันทึกประวัติไว้ในเซสชันได้`);
+      setNotice("ไม่สามารถเปิดหน้าแก้ไขข้อมูลพนักงานได้");
     }
-    setEditTarget(null);
   }
 
   function openHistory(employee: Employee) {
@@ -489,49 +419,6 @@ export default function EmployeesPage() {
           </section>
         </div>
       </main>
-
-      {editTarget ? (
-        <div className="decision-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditTarget(null); }}>
-          <section className="decision-dialog employee-edit-dialog" role="dialog" aria-modal="true" aria-labelledby="employee-edit-title">
-            <button type="button" className="decision-close" onClick={() => setEditTarget(null)} aria-label="ปิดหน้าต่าง">×</button>
-            <div className="decision-icon return" aria-hidden="true"><EditIcon /></div>
-            <h2 id="employee-edit-title">แก้ไขประวัติพนักงาน</h2>
-            <p className="decision-description">รหัสพนักงาน {editTarget.id}</p>
-            <form className="employee-edit-form" onSubmit={saveEdit}>
-              <label>
-                <span>ชื่อ-นามสกุล</span>
-                <input required value={editForm.name} onChange={(event) => setEditForm((current) => ({ ...current, name: event.target.value }))} />
-              </label>
-              <label>
-                <span>อีเมล</span>
-                <input required type="email" value={editForm.email} onChange={(event) => setEditForm((current) => ({ ...current, email: event.target.value }))} />
-              </label>
-              <label>
-                <span>แผนก</span>
-                <select value={editForm.department} onChange={(event) => setEditForm((current) => ({ ...current, department: event.target.value }))}>
-                  {departments.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              </label>
-              <label>
-                <span>ตำแหน่ง</span>
-                <select value={editForm.position} onChange={(event) => setEditForm((current) => ({ ...current, position: event.target.value }))}>
-                  {positions.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              </label>
-              <label>
-                <span>กลุ่มสิทธิ์ (Tier)</span>
-                <select value={editForm.tier} onChange={(event) => setEditForm((current) => ({ ...current, tier: event.target.value as Employee["tier"] }))}>
-                  {tiers.map((item) => <option key={item}>{item}</option>)}
-                </select>
-              </label>
-              <div className="decision-actions">
-                <button type="button" className="button button-secondary" onClick={() => setEditTarget(null)}>ยกเลิก</button>
-                <button type="submit" className="button button-primary">บันทึกการแก้ไข</button>
-              </div>
-            </form>
-          </section>
-        </div>
-      ) : null}
 
       {deleteTarget ? (
         <div
