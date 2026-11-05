@@ -3886,6 +3886,18 @@ button {
   width: 18%;
 }
 
+.employee-history-audit-table th:nth-child(1) {
+  width: 20%;
+}
+
+.employee-history-audit-table th:nth-child(2) {
+  width: 55%;
+}
+
+.employee-history-audit-table th:nth-child(3) {
+  width: 25%;
+}
+
 .employee-history-table td {
   height: 94px;
   border-top: 1px solid #d5d9df;
@@ -3912,6 +3924,27 @@ button {
 .employee-history-table td > time {
   font-weight: 400;
   font-variant-numeric: tabular-nums;
+}
+
+.employee-history-change-details > strong {
+  display: block;
+  color: #1e293b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.employee-history-change-details ul {
+  display: grid;
+  gap: 4px;
+  margin: 7px 0 0;
+  padding-left: 18px;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.employee-history-change-details li > span:first-child {
+  color: #64748b;
 }
 
 .employee-history-table .employee-history-no-records {
@@ -4112,8 +4145,14 @@ button {
   }
 
   .employee-history-table td > time,
-  .employee-history-table td > strong {
+  .employee-history-table td > strong,
+  .employee-history-change-details > strong {
     font-size: 12px;
+  }
+
+  .employee-history-change-details ul {
+    font-size: 11px;
+    overflow-wrap: anywhere;
   }
 
   .employee-history-table .employee-history-no-records {

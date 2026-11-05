@@ -20,6 +20,8 @@ type EmployeeHistoryEntry = {
   id: string;
   changedAt: string;
   summary: string;
+  actor?: string;
+  changes?: { field: string; before: string; after: string }[];
 };
 
 const departments = ["IT", "Marketing", "Sales", "HR", "Finance"];
@@ -98,7 +100,18 @@ function isHistoryEntry(value: unknown): value is EmployeeHistoryEntry {
     value !== null &&
     "id" in value && typeof value.id === "string" &&
     "changedAt" in value && typeof value.changedAt === "string" &&
-    "summary" in value && typeof value.summary === "string"
+    "summary" in value && typeof value.summary === "string" &&
+    (!("actor" in value) || typeof value.actor === "string") &&
+    (!("changes" in value) || (
+      Array.isArray(value.changes) &&
+      value.changes.every((change) =>
+        typeof change === "object" &&
+        change !== null &&
+        "field" in change && typeof change.field === "string" &&
+        "before" in change && typeof change.before === "string" &&
+        "after" in change && typeof change.after === "string"
+      )
+    ))
   );
 }
 
@@ -250,12 +263,14 @@ export default function EmployeesPage() {
     event.preventDefault();
     if (!editTarget) return;
 
-    const changes: string[] = [];
-    if (editForm.name.trim() !== editTarget.name) changes.push("ชื่อ-นามสกุล");
-    if (editForm.email.trim() !== editTarget.email) changes.push("อีเมล");
-    if (editForm.department !== editTarget.department) changes.push("แผนก");
-    if (editForm.position !== editTarget.position) changes.push("ตำแหน่ง");
-    if (editForm.tier !== editTarget.tier) changes.push("กลุ่มสิทธิ์");
+    const fieldChanges = [
+      { field: "ชื่อ-นามสกุล", before: editTarget.name, after: editForm.name.trim() },
+      { field: "อีเมล", before: editTarget.email, after: editForm.email.trim() },
+      { field: "แผนก", before: editTarget.department, after: editForm.department },
+      { field: "ตำแหน่ง", before: editTarget.position, after: editForm.position },
+      { field: "กลุ่มสิทธิ์", before: editTarget.tier, after: editForm.tier },
+    ].filter((change) => change.before !== change.after);
+    const changes = fieldChanges.map((change) => change.field);
 
     if (changes.length === 0) {
       setEditTarget(null);
@@ -274,6 +289,8 @@ export default function EmployeesPage() {
       id: `${Date.now()}`,
       changedAt: new Date().toISOString(),
       summary: `แก้ไข${changes.join(", ")}`,
+      actor: "ผู้ดูแลระบบ",
+      changes: fieldChanges,
     };
     setEmployees((current) => current.map((employee) => employee.id === updatedEmployee.id ? updatedEmployee : employee));
 
